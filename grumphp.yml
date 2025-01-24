@@ -1,0 +1,48 @@
+grumphp:
+  tasks:
+    phpcs:
+      standard: ['PSR12']
+      severity: 1
+      error_severity: ~
+      warning_severity: ~
+      tab_width: 4
+      report: full
+      report_width: ~
+      encoding: ~
+      sniffs: []
+      triggered_by: [php]
+      show_sniffs_error_path: true
+
+    phpmd:
+      whitelist_patterns: []
+      exclude: []
+      report_format: text
+      ruleset:
+        - 'ruleset.xml'
+      triggered_by: [ 'php' ]
+
+
+    phpstan:
+      autoload_file: ~
+      configuration: ~
+      level: 9
+      force_patterns: [ ]
+      ignore_patterns: ['tests']
+      triggered_by: [ 'php' ]
+      use_grumphp_paths: true
+
+    phpparser:
+        kind: php8
+        visitors:
+          declare_strict_types: ~
+          no_exit_statements: ~
+          never_use_else: ~
+          forbidden_function_calls:
+            blacklist:
+              - 'var_dump'
+              - 'dd'
+              - 'dump'
+              - 'echo'
+              - 'print'
+              - 'print_r'
+        triggered_by: [ php ]
