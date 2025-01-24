@@ -1,0 +1,89 @@
+version: '3'
+
+networks:
+  svnet-easy-repo:
+
+services:
+  app:
+    container_name: easy-repo-nginx
+    build:
+      context: ./dockerfiles
+      dockerfile: nginx.dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html:delegated
+      - ./dockerfiles/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - php
+    networks:
+      - svnet-easy-repo
+
+  php:
+    container_name: easy-repo-php
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/var/www/html:delegated
+    networks:
+      - svnet-easy-repo
+
+  composer:
+    container_name: easy-repo-composer
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - php
+    entrypoint: [ "composer", "--ignore-platform-reqs" ]
+    networks:
+      - svnet-easy-repo
+
+  mysql:
+    container_name: easy-repo-mysql
+    image: mariadb:10.6
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: playground
+      MYSQL_USER: playground
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./dbdata:/var/lib/mysql
+      - ./dumps:/dumps
+    networks:
+      - svnet-easy-repo
+
+  phpmyadmin:
+    container_name: easy-repo-phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    links:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    networks:
+      - svnet-easy-repo
+    restart: always
+    ports:
+      - "8081:80"
