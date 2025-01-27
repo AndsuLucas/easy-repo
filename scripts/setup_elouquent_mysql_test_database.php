@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-require_once './setup_elouquent_mysql_test_database.php';
+require_once './connect_elouquent_mysql_database.php';
 
 Manager::schema()->create('users', function ($table) {
     $table->increments('id');

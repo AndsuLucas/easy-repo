@@ -8,8 +8,11 @@ use ArrayAccess;
 
 abstract class AbstractDataEntry implements ArrayAccess
 {
-    public function __construct(private iterable $data) {}
+    protected ArrayAccess|iterable $data;
 
+    public function __construct(ArrayAccess|array $data) {
+        $this->data = $this->hydrate($data);
+    }
 
     public function offsetExists($offset): bool
     {
@@ -31,4 +34,6 @@ abstract class AbstractDataEntry implements ArrayAccess
     {
         unset($this->data[$offset]);
     }
+
+    abstract protected function hydrate(ArrayAccess|array $data): ArrayAccess|array;
 }
