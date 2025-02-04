@@ -9,7 +9,7 @@ use ArrayAccess;
 
 class EasyRepoDataEntry extends AbstractDataEntry
 {
-    protected function hydrate(ArrayAccess|array $data): ArrayAccess
+    protected function hydrate(ArrayAccess|array $data): ArrayAccess|array
     {
         return $data;
     }

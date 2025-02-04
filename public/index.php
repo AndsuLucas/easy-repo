@@ -4,9 +4,9 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../scripts/connect_elouquent_mysql_database.php';
 require_once __DIR__ . '/../scripts/User.php';
 
-use Andsudev\Easyrepo\Repository\ElouquentRepository;
+use Andsudev\Easyrepo\Repository\EloquentRepository;
 
-class UserRepository extends ElouquentRepository
+class UserRepository extends EloquentRepository
 {
     protected string $modelClass = User::class;
 }
