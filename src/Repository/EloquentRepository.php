@@ -10,7 +10,11 @@ use Andsudev\Easyrepo\DataEntry\EasyRepoDataEntry;
 use Andsudev\Easyrepo\DataEntry\AbstractDataEntry;
 use ArrayAccess;
 
-abstract class ElouquentRepository implements EasyRepositoryInterface
+
+/**
+ * @template T of Model
+ */
+abstract class EloquentRepository implements EasyRepositoryInterface
 {
     protected string $modelClass;
 
@@ -40,6 +44,7 @@ abstract class ElouquentRepository implements EasyRepositoryInterface
 
     /**
      * Return a single data entry based on the id.
+     * @return AbstractDataEntry<T>
      */
     public function find(int|string $id): ?AbstractDataEntry
     {
@@ -47,9 +52,28 @@ abstract class ElouquentRepository implements EasyRepositoryInterface
         return $this->mountDataEntry($registry);
     }
 
-    public function findBy(array $criteria): ?AbstractDataEntry
+    public function findBy(array $criteria, ...$additionalCriteria): ?AbstractDataEntry
     {
-        $registry = $this->model->where(...$criteria)->first();
+        $query = $this->model->where(...$criteria);
+        if (count($additionalCriteria) > 0) {
+            foreach ($additionalCriteria as $crit) {
+                if (!is_array($crit) || count($crit) !== 4) {
+                    throw new \Exception("Invalid criteria: "  . var_export($crit, true));
+                }
+
+                [$clause, $column, $operator, $value] = $crit;
+
+                if (!in_array($clause, ['and', 'or'])) {
+                    throw new \Exception("Invalid clause: " . $clause);
+                }
+
+                $clauseMethod = $clause == 'or' ? 'orWhere' : 'where';
+                $query = $query->$clauseMethod($column, $operator, $value);
+            }
+        }
+
+
+        $registry = $query->get();
         return $this->mountDataEntry($registry);
     }
 
