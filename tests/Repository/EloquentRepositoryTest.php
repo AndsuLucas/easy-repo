@@ -7,6 +7,7 @@ namespace Andsudev\Tests\Repository;
 use PHPUnit\Framework\TestCase;
 use Andsudev\Easyrepo\Repository\EloquentRepository;
 use Andsudev\Easyrepo\DataEntry\AbstractDataEntry;
+use Illuminate\Database\DatabaseManager;
 
 class EloquentRepositoryTest extends TestCase
 {
@@ -26,7 +27,8 @@ class EloquentRepositoryTest extends TestCase
         parent::setUp();
     }
 
-    public function testFindShouldReturnValidDataEntry() {
+    public function testFindShouldReturnValidDataEntry()
+    {
         $user = $this->userRepo->find(1);
         $this->assertIsObject($user);
         $this->assertInstanceOf(AbstractDataEntry::class, $user);
@@ -79,5 +81,63 @@ class EloquentRepositoryTest extends TestCase
             $this->assertEquals($item->email, $expected[$key]['email']);
             $this->assertEquals($item->age, $expected[$key]['age']);
         }
+    }
+
+    public function testCreateUpdateAndDeleteWithFindWithLimit()
+    {
+
+        $return = $this->userRepo->create([
+            'name' => 'test123',
+            'email' => 'teste123@example.com',
+            'age' => 12,
+        ]);
+
+        $this->assertTrue($return);
+
+        $this->userRepo->limit(1);
+        $find = $this->userRepo->findBy(['name', '=', 'test123']);
+
+        $this->assertCount(1, $find);
+
+        $id = $find[0]->id;
+
+        $return = $this->userRepo->update($id, ['name' => 'test1234']);
+
+        $this->assertTrue($return);
+
+        $user = $this->userRepo->find($id);
+
+        $this->assertEquals('test1234', $user->name);
+        $this->userRepo->delete($id);
+
+        $userAfterDelete = $this->userRepo->find($id);
+
+        $this->assertNull($userAfterDelete);
+    }
+
+  
+    public function testOrderBy()
+    {
+        $this->userRepo->orderBy(['id', 'desc']);
+        $this->userRepo->limit(4);
+        $users = $this->userRepo->findBy(['id', '>', '1']);
+        $this->assertCount(4, $users);
+        $this->assertEquals(10, $users[0]->id);
+        $this->assertEquals(9, $users[1]->id);
+        $this->assertEquals(8, $users[2]->id);
+        $this->assertEquals(7, $users[3]->id);
+    }
+
+
+    public function testColumns()
+    {
+        $this->userRepo->columns(['id', 'name']);
+        $users = $this->userRepo->findBy(['id', '=', '1']);
+        $this->assertCount(1, $users);
+
+        $this->assertEquals(
+            ['id' => 1, 'name' => 'John Doe'],
+            $users[0]->toArray()
+        );
     }
 }
